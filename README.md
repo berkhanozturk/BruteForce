@@ -1,2 +1,4 @@
 # BruteForce
 repo for HUCKATHON[25]
+2. PROBLEM
+BERKHAN ÖZTÜRK - ZEYNEP SU TUT
