@@ -1,0 +1,38 @@
+{
+  "Zaman Yönetimi": {
+    "Keşifçi": {
+      "zorlanan_oran": 0.62
+    },
+    "Duyusal": {
+      "zorlanan_oran": 0.35
+    },
+    "Odaklı": {
+      "zorlanan_oran": 0.28
+    },
+    "Eylemci": {
+      "zorlanan_oran": 0.50
+    }
+  },
+  "İçsel Motivasyon": {
+    "Keşifçi": {
+      "zorlanan_oran": 0.45
+    },
+    "Duyusal": {
+      "zorlanan_oran": 0.52
+    },
+    "Odaklı": {
+      "zorlanan_oran": 0.30
+    },
+    "Eylemci": {
+      "zorlanan_oran": 0.58
+    }
+  },
+  "Karar Verme": {
+    "Keşifçi": {
+      "zorlanan_oran": 0.67
+    },
+    "Odaklı": {
+      "zorlanan_oran": 0.25
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "kullanici1",
+  "zihin_tipi": null,
+  "ogrenme_hizi": null,
+  "gorev_gecmisi": [
+    {
+      "ad": "Hedef Belirleme",
+      "konu": "Hedef Belirleme",
+      "puan": 80,
+      "tamamlandi": true,
+      "tarih": "2025-05-17"
+    },
+    {
+      "ad": "İçsel Motivasyon",
+      "konu": "İçsel Motivasyon",
+      "puan": 80,
+      "tamamlandi": true,
+      "tarih": "2025-05-17"
+    },
+    {
+      "ad": "Karar Verme",
+      "konu": "Karar Verme",
+      "puan": 80,
+      "tamamlandi": true,
+      "tarih": "2025-05-17"
+    }
+  ],
+  "basari_skorlari": {
+    "Hedef Belirleme": [
+      80
+    ],
+    "İçsel Motivasyon": [
+      80
+    ],
+    "Karar Verme": [
+      80
+    ]
+  },
+  "anilar": [
+    "📜 2025-05-17 - Hedef Belirleme: Bu görevde harika bir başarı gösterdin. Hedef Belirleme konusunda ustalaşmaya başladın.",
+    "📜 2025-05-17 - Hedef Belirleme: Bu görevde harika bir başarı gösterdin. Hedef Belirleme konusunda ustalaşmaya başladın.",
+    "📜 2025-05-17 - Hedef Belirleme: Bu görevde harika bir başarı gösterdin. Hedef Belirleme konusunda ustalaşmaya başladın.",
+    "📜 2025-05-17 - İçsel Motivasyon: Bu görevde harika bir başarı gösterdin. İçsel Motivasyon konusunda ustalaşmaya başladın.",
+    "📜 2025-05-17 - Karar Verme: Bu görevde harika bir başarı gösterdin. Karar Verme konusunda ustalaşmaya başladın."
+  ],
+  "mesh_log": {}
+}
