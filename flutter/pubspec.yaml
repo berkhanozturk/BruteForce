@@ -1,0 +1,30 @@
+name: zeynepgpt_ui
+description: "Zeynep Su'nun Galaksi Tabanlı AI Eğitim Rehberi"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  particles_flutter: ^0.1.4       # ⭐ Dinamik yıldızlar için eklendi
+  http: ^1.1.0                     # 🌐 API entegrasyonu için gerekli
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/girisekran.jpeg       # 🌌 Giriş ekranı görseli
+    - assets/ikinciekran.png       # 🌌 LightScanner arka plan
+    - assets/galaxy_map.jpeg       # 🌌 Galaksi haritası arka planı
+    - assets/odak.jpeg             # 🎯 Odak modülü arka planı
+
