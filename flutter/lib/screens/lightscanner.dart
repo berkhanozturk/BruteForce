@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'galaxy_map_screen.dart';
 
 class LightScannerScreen extends StatefulWidget {
@@ -80,10 +82,12 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
       if (currentQuestion < questions.length - 1) {
         currentQuestion++;
       } else {
+        final sonuc = _enYuksekPuan();
+        _gptZihinTipiniGonder(sonuc);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ZihinSonucEkrani(zihinTipi: _enYuksekPuan()),
+            builder: (_) => GalaxyMapScreen(zihinTipi: sonuc),
           ),
         );
       }
@@ -92,6 +96,21 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
 
   String _enYuksekPuan() {
     return scores.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+  }
+
+  Future<void> _gptZihinTipiniGonder(String zihinTipi) async {
+    try {
+      await http.post(
+        Uri.parse("http://127.0.0.1:5050/api/zihin"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "zihin_tipi": zihinTipi,
+          "kullanici": "ZeynepSu",
+        }),
+      );
+    } catch (e) {
+      debugPrint("API bağlantı hatası: \$e");
+    }
   }
 
   @override
@@ -145,9 +164,7 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent.withOpacity(
-                            0.8,
-                          ),
+                          backgroundColor: Colors.deepPurpleAccent.withOpacity(0.8),
                           elevation: 12,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -172,126 +189,11 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    "${currentQuestion + 1}/${questions.length}",
+                    "\${currentQuestion + 1}/\${questions.length}",
                     style: const TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// -------------------- SONUÇ EKRANI --------------------
-
-class ZihinSonucEkrani extends StatelessWidget {
-  final String zihinTipi;
-  const ZihinSonucEkrani({super.key, required this.zihinTipi});
-
-  Color getGlowColor(String type) {
-    switch (type) {
-      case 'Keşifçi':
-        return Colors.purpleAccent;
-      case 'Duyusal':
-        return Colors.pinkAccent;
-      case 'Odaklı':
-        return Colors.blueAccent;
-      case 'Eylemci':
-        return Colors.orangeAccent;
-      default:
-        return Colors.white;
-    }
-  }
-
-  String getMentorMessage(String type) {
-    switch (type) {
-      case 'Keşifçi':
-        return 'Sen fikirlerin evreninde bir gezginsin. Hayal gücünle sınırları aşabilirsin.';
-      case 'Duyusal':
-        return 'Sen duyguların rehberliğinde öğrenen birisin. Empatin çok kıymetli.';
-      case 'Odaklı':
-        return 'Sen düzenin ve netliğin ustasısın. Ama bazen kalbini de dinlemeyi unutma.';
-      case 'Eylemci':
-        return 'Sen harekete geçmeden duramayan bir yıldızsın. Ancak yönünü iyi seçmelisin.';
-      default:
-        return 'Zihnin bir ışık, onu hangi yöne odakladığın her şeyi değiştirir.';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final glowColor = getGlowColor(zihinTipi);
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: AnimatedContainer(
-              duration: const Duration(seconds: 2),
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [glowColor.withOpacity(0.4), Colors.black],
-                  radius: 0.85,
-                ),
-              ),
-            ),
-          ),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [glowColor.withOpacity(0.6), Colors.transparent],
-                      radius: 0.9,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: glowColor.withOpacity(0.5),
-                        blurRadius: 40,
-                        spreadRadius: 20,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Text(
-                  "Sen bir $zihinTipi'sin!",
-                  style: const TextStyle(
-                    fontSize: 26,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "🧭 Mentör'den Tavsiye:\n${getMentorMessage(zihinTipi)}",
-                  style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: glowColor),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => GalaxyMapScreen(zihinTipi: zihinTipi),
-                      ),
-                    );
-                  },
-                  child: const Text("Galaksi Haritasına Git"),
-                ),
-              ],
             ),
           ),
         ],
