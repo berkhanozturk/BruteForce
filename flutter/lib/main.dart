@@ -61,7 +61,6 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
         onHover: (event) => setState(() => pointerOffset = event.localPosition),
         child: Stack(
           children: [
-            // 1. Parallax arka plan
             Positioned.fill(
               child: Transform.translate(
                 offset: Offset(
@@ -71,8 +70,6 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
                 child: Image.asset('assets/girisekran.jpeg', fit: BoxFit.cover),
               ),
             ),
-
-            // 2. Yıldız tozu partikülleri
             CircularParticle(
               key: UniqueKey(),
               awayRadius: 80,
@@ -87,8 +84,6 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
               isRandomColor: false,
               connectDots: false,
             ),
-
-            // 3. Metinler ve buton – Fade-in animasyonla
             Center(
               child: FadeTransition(
                 opacity: _fadeIn,
@@ -118,8 +113,6 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
                       ),
                     ),
                     const SizedBox(height: 40),
-
-                    // 🔁 MouseRegion ile uyumlu hale getirildi
                     MouseRegion(
                       onEnter: (_) => setState(() => hovering = true),
                       onExit: (_) => setState(() => hovering = false),
@@ -148,7 +141,6 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
                           ),
                           onPressed: () async {
                             print("🟢 DİYALOĞU AÇIYORUZ");
-
                             final result = await showDialog<bool>(
                               context: context,
                               builder:
@@ -165,7 +157,7 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
                                     actions: [
                                       TextButton(
                                         onPressed: () {
-                                          print("🟣 EVET'E BASILDI");
+                                          print("🕣 EVET'E BASILDI");
                                           Navigator.of(ctx).pop(true);
                                         },
                                         child: const Text(
@@ -186,9 +178,7 @@ class _ElegantSplashScreenState extends State<ElegantSplashScreen>
                                     ],
                                   ),
                             );
-
                             print("🟡 DIALOG KAPANDI. RESULT: $result");
-
                             if (result == true) {
                               print("🚀 SAYFA AÇILIYOR...");
                               Navigator.push(
