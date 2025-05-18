@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   particles_flutter: ^0.1.4       # ⭐ Dinamik yıldızlar için eklendi
   http: ^1.1.0                     # 🌐 API entegrasyonu için gerekli
+  google_fonts: ^6.1.0            # ✨ Özel başlık fontu (Orbitron) için
 
 dev_dependencies:
   flutter_test:
@@ -27,4 +28,4 @@ flutter:
     - assets/ikinciekran.png       # 🌌 LightScanner arka plan
     - assets/galaxy_map.jpeg       # 🌌 Galaksi haritası arka planı
     - assets/odak.jpeg             # 🎯 Odak modülü arka planı
-
+    - assets/mentor_avatar.png     # 👽 Yapay Zeka Mentör Avatarı
