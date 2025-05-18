@@ -1,39 +1,52 @@
 import openai
 import os
-from openai import OpenAI
-from gpt.mesh_analiz import mesh_guncelle
-
-
-# Anahtar .env'den alınacaksa:
 from dotenv import load_dotenv
+
+# Ortam değişkenlerini yükle (.env içinden API anahtarını almak için)
 load_dotenv()
 
-api_key = os.getenv("OPENAI_API_KEY") or "sk-..."  # doğrudan da verebilirsin
-client = OpenAI(api_key=api_key)
+# OpenAI API anahtarı alınır
+api_key = os.getenv("OPENAI_API_KEY") or "sk-..."  # Dilersen doğrudan buraya da yazabilirsin
+openai.api_key = api_key
 
-def gpt_mentorluk_mesaji(zihin_tipi, ogrenme_hizi, konu, kullanici_mesaji, model="gpt-3.5-turbo"):
+def gpt_cevabi_uret(soru, zihin_tipi="Keşifçi", konu="Odaklanma", hiz="orta"):
+    zihin_aciklamalari = {
+        "Keşifçi": "Meraklı, sınırları zorlayan, yeni yollar denemeyi seven.",
+        "Duyusal": "Duygularıyla öğrenen, empatik ve iç görü odaklı.",
+        "Odaklı": "Analitik, planlı, dikkatli, verimlilik odaklı.",
+        "Eylemci": "Pratik, harekete geçmeyi seven, uygulama odaklı.",
+        "Çok Yönlü": "Tüm tiplerden özellikler taşıyan, dengeli düşünen."
+    }
+
+    karakter_ozeti = zihin_aciklamalari.get(zihin_tipi, "Karma yapılı bir birey.")
+
     prompt = f"""
-Sen bir yapay zekâ destekli eğitim mentörüsün.
+Sen kişiselleştirilmiş bir eğitim mentorusün.
 
-Kullanıcının zihin tipi: {zihin_tipi}
-Öğrenme hızı: {ogrenme_hizi}
-Konu: {konu}
-Kullanıcının sorusu: "{kullanici_mesaji}"
+🧠 Kullanıcının zihin tipi: {zihin_tipi}
+🧬 Zihin tipi açıklaması: {karakter_ozeti}
+⚡️ Öğrenme hızı: {hiz}
+📚 Konu: {konu}
 
-Bu bilgilere göre kişisel, destekleyici ve içgörü dolu bir cevap ver.
-    """
+Kullanıcının sorusu:
+"{soru}"
 
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "Sen kişiselleştirilmiş bir mentor yapay zekasısın."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
-        max_tokens=400
-    )
+Lütfen bu kişinin zihin yapısına en uygun şekilde cevap ver.
+Cevabın sade, net ve bilgi dolu olsun. Uzun açıklamalardan kaçın.
+1-2 cümlede özü ver, gerekiyorsa küçük bir sayısal örnek de kullan.
+"""
 
-    return response.choices[0].message.content
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Sen kişiselleştirilmiş bir mentor yapay zekasısın."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.6,
+            max_tokens=120
+        )
 
-def gpt_cevabi_uret(soru, zihin_tipi="Keşifçi", konu="Bilinmeyen", hiz="orta"):
-    return gpt_mentorluk_mesaji(zihin_tipi, hiz, konu, soru)
+        return response["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        return f"❌ GPT API Hatası: {str(e)}"
