@@ -76,22 +76,25 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
     },
   ];
 
-  void cevapSec(String zihinTipi) {
+  void cevapSec(String zihinTipi) async {
     setState(() {
       scores[zihinTipi] = (scores[zihinTipi] ?? 0) + 1;
-      if (currentQuestion < questions.length - 1) {
-        currentQuestion++;
-      } else {
-        final sonuc = _enYuksekPuan();
-        _gptZihinTipiniGonder(sonuc);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GalaxyMapScreen(zihinTipi: sonuc),
-          ),
-        );
-      }
     });
+
+    if (currentQuestion < questions.length - 1) {
+      setState(() {
+        currentQuestion++;
+      });
+    } else {
+      final sonuc = _enYuksekPuan();
+      await _gptZihinTipiniGonder(sonuc);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ZihinSonucEkrani(zihinTipi: sonuc),
+        ),
+      );
+    }
   }
 
   String _enYuksekPuan() {
@@ -100,7 +103,7 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
 
   Future<void> _gptZihinTipiniGonder(String zihinTipi) async {
     try {
-      await http.post(
+      final response = await http.post(
         Uri.parse("http://127.0.0.1:5050/api/zihin"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -108,8 +111,9 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
           "kullanici": "ZeynepSu",
         }),
       );
+      print("✅ API cevabı: ${response.statusCode} - ${response.body}");
     } catch (e) {
-      debugPrint("API bağlantı hatası: \$e");
+      print("❌ API bağlantı hatası: $e");
     }
   }
 
@@ -129,21 +133,7 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.05),
-                    Colors.white.withOpacity(0.02),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(color: Colors.white24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 20,
-                  ),
-                ],
+                color: Colors.black.withOpacity(0.4),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -154,7 +144,6 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      shadows: [Shadow(color: Colors.black54, blurRadius: 10)],
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -164,36 +153,148 @@ class _LightScannerScreenState extends State<LightScannerScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent.withOpacity(0.8),
-                          elevation: 12,
+                          backgroundColor: Colors.deepPurpleAccent,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 14,
                           ),
                         ),
                         onPressed: () => cevapSec(entry.value),
                         child: Text(
                           entry.key,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            letterSpacing: 0.5,
-                          ),
+                              fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    "\${currentQuestion + 1}/\${questions.length}",
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    "${currentQuestion + 1}/${questions.length}",
+                    style: const TextStyle(color: Colors.white70),
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ------------------ ZihinSonucEkrani ------------------
+
+class ZihinSonucEkrani extends StatelessWidget {
+  final String zihinTipi;
+  const ZihinSonucEkrani({super.key, required this.zihinTipi});
+
+  Color getGlowColor(String type) {
+    switch (type) {
+      case 'Keşifçi':
+        return Colors.purpleAccent;
+      case 'Duyusal':
+        return Colors.pinkAccent;
+      case 'Odaklı':
+        return Colors.blueAccent;
+      case 'Eylemci':
+        return Colors.orangeAccent;
+      default:
+        return Colors.white;
+    }
+  }
+
+  String getMentorMessage(String type) {
+    switch (type) {
+      case 'Keşifçi':
+        return 'Sen fikirlerin evreninde bir gezginsin. Hayal gücünle sınırları aşabilirsin.';
+      case 'Duyusal':
+        return 'Sen duyguların rehberliğinde öğrenen birisin. Empatin çok kıymetli.';
+      case 'Odaklı':
+        return 'Sen düzenin ve netliğin ustasısın. Ama bazen kalbini de dinlemeyi unutma.';
+      case 'Eylemci':
+        return 'Sen harekete geçmeden duramayan bir yıldızsın. Ancak yönünü iyi seçmelisin.';
+      default:
+        return 'Zihnin bir ışık, onu hangi yöne odakladığın her şeyi değiştirir.';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final glowColor = getGlowColor(zihinTipi);
+    final mesaj = getMentorMessage(zihinTipi);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: AnimatedContainer(
+              duration: const Duration(seconds: 2),
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [glowColor.withOpacity(0.4), Colors.black],
+                  radius: 0.85,
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [glowColor.withOpacity(0.6), Colors.transparent],
+                      radius: 0.9,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: glowColor.withOpacity(0.5),
+                        blurRadius: 40,
+                        spreadRadius: 20,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  "Sen bir $zihinTipi'sin!",
+                  style: const TextStyle(
+                    fontSize: 26,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "🧭 Mentör'den Tavsiye:\n$mesaj",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: glowColor),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            GalaxyMapScreen(zihinTipi: zihinTipi),
+                      ),
+                    );
+                  },
+                  child: const Text("Galaksi Haritasına Git"),
+                ),
+              ],
             ),
           ),
         ],
