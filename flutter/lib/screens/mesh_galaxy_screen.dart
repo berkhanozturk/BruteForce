@@ -1,203 +1,190 @@
+import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'galaxy_map_screen.dart';
 
-class LightScannerScreen extends StatefulWidget {
-  const LightScannerScreen({super.key});
+class MeshGalaxyScreen extends StatefulWidget {
+  const MeshGalaxyScreen({super.key});
 
   @override
-  State<LightScannerScreen> createState() => _LightScannerScreenState();
+  State<MeshGalaxyScreen> createState() => _MeshGalaxyScreenState();
 }
 
-class _LightScannerScreenState extends State<LightScannerScreen> {
-  int currentQuestion = 0;
-  Map<String, int> scores = {
-    'Keşifçi': 0,
-    'Duyusal': 0,
-    'Odaklı': 0,
-    'Eylemci': 0,
-  };
+class _MeshGalaxyScreenState extends State<MeshGalaxyScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _rotation;
+  final List<Offset> _points = [];
+  final int _pointCount = 40;
+  String meshDurumu = "Mesh ağı hazırlanıyor...";
 
-  final List<Map<String, dynamic>> questions = [
-    {
-      'soru': 'Yeni bir şey öğrenirken en çok hangisini yaparsın?',
-      'secenekler': {
-        'Deney yaparım': 'Keşifçi',
-        'Duygusal bağ kurarım': 'Duyusal',
-        'Anlamlandırırım ve analiz ederim': 'Odaklı',
-        'Hemen uygularım': 'Eylemci',
-      },
-    },
-    {
-      'soru': 'Bir problemi çözerken hangisi seni daha çok tatmin eder?',
-      'secenekler': {
-        'Yeni yollar denemek': 'Keşifçi',
-        'Hikaye kurmak': 'Duyusal',
-        'Sebep-sonuç ilişkisi kurmak': 'Odaklı',
-        'Hızlıca çözmek': 'Eylemci',
-      },
-    },
-    {
-      'soru': 'Bir projeye başlarken önce ne yaparsın?',
-      'secenekler': {
-        'Keşfe çıkarım': 'Keşifçi',
-        'Hislerimi dinlerim': 'Duyusal',
-        'Plan yaparım': 'Odaklı',
-        'Hemen başlarım': 'Eylemci',
-      },
-    },
-    {
-      'soru': 'İlham aldığın anlarda ne yaparsın?',
-      'secenekler': {
-        'Hayal kurarım': 'Keşifçi',
-        'Duygulanırım': 'Duyusal',
-        'Not alır ve düzenlerim': 'Odaklı',
-        'İlk adımı hemen atarım': 'Eylemci',
-      },
-    },
-    {
-      'soru': 'Zamanını planlarken hangisine öncelik verirsin?',
-      'secenekler': {
-        'Keşif alanlarına yer bırakmak': 'Keşifçi',
-        'Kendime zaman ayırmak': 'Duyusal',
-        'Verimli program yapmak': 'Odaklı',
-        'Uygulamaya dökmek': 'Eylemci',
-      },
-    },
-    {
-      'soru': 'Ekip çalışmasında hangi roldesin?',
-      'secenekler': {
-        'Fikirleri ortaya atan': 'Keşifçi',
-        'Bağ kuran': 'Duyusal',
-        'Organize eden': 'Odaklı',
-        'Harekete geçiren': 'Eylemci',
-      },
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    )..repeat();
 
-  void cevapSec(String zihinTipi) {
-    setState(() {
-      scores[zihinTipi] = (scores[zihinTipi] ?? 0) + 1;
-      if (currentQuestion < questions.length - 1) {
-        currentQuestion++;
-      } else {
-        final sonuc = _enYuksekPuan();
-        _gptZihinTipiniGonder(sonuc);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GalaxyMapScreen(zihinTipi: sonuc),
-          ),
-        );
-      }
-    });
+    _rotation = Tween<double>(begin: 0, end: 2 * pi).animate(_controller);
+    _generatePoints();
+    _meshAgiCagir();
   }
 
-  String _enYuksekPuan() {
-    return scores.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+  void _generatePoints() {
+    final random = Random();
+    for (int i = 0; i < _pointCount; i++) {
+      _points.add(
+        Offset(
+          0.2 + 0.6 * random.nextDouble(),
+          0.2 + 0.6 * random.nextDouble(),
+        ),
+      );
+    }
   }
 
-  Future<void> _gptZihinTipiniGonder(String zihinTipi) async {
+  Future<void> _meshAgiCagir() async {
     try {
-      await http.post(
-        Uri.parse("http://127.0.0.1:5050/api/zihin"),
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1:5050/api/mesh"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          "zihin_tipi": zihinTipi,
           "kullanici": "ZeynepSu",
+          "cihaz_sayisi": _pointCount,
+          "zihin_tipi": "Odaklı"
         }),
       );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          meshDurumu = data["mesh_durumu"] ?? "Mesh başarılı fakat mesaj alınamadı.";
+        });
+      } else {
+        setState(() {
+          meshDurumu = "❌ Sunucu hatası: \${response.statusCode}";
+        });
+      }
     } catch (e) {
-      debugPrint("API bağlantı hatası: \$e");
+      setState(() {
+        meshDurumu = "❌ Bağlantı hatası: \$e";
+      });
     }
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final soru = questions[currentQuestion];
+    final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset('assets/ikinciekran.png', fit: BoxFit.cover),
-          ),
-          Center(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.05),
-                    Colors.white.withOpacity(0.02),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(color: Colors.white24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 20,
-                  ),
-                ],
+      backgroundColor: Colors.black,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset('assets/galaxy_map.jpeg', fit: BoxFit.cover),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    soru['soru'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      shadows: [Shadow(color: Colors.black54, blurRadius: 10)],
+              CustomPaint(
+                size: screenSize,
+                painter: _MeshPainter(_points, _rotation.value),
+              ),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.wifi, color: Colors.lightBlueAccent, size: 60),
+                    const SizedBox(height: 12),
+                    Text(
+                      meshDurumu,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ...soru['secenekler'].entries.map(
-                    (entry) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent.withOpacity(0.8),
-                          elevation: 12,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 40,
+                right: 20,
+                child: SafeArea(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 14,
-                          ),
-                        ),
-                        onPressed: () => cevapSec(entry.value),
-                        child: Text(
-                          entry.key,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 24,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "\${currentQuestion + 1}/\${questions.length}",
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
+}
+
+class _MeshPainter extends CustomPainter {
+  final List<Offset> points;
+  final double rotation;
+
+  _MeshPainter(this.points, this.rotation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.blueAccent.withOpacity(0.6)
+      ..strokeWidth = 1.2;
+
+    final center = Offset(size.width / 2, size.height / 2);
+
+    final transformed = points.map((p) {
+      final dx = (p.dx - 0.5) * size.width;
+      final dy = (p.dy - 0.5) * size.height;
+      final x = dx * cos(rotation) - dy * sin(rotation);
+      final y = dx * sin(rotation) + dy * cos(rotation);
+      return center + Offset(x, y);
+    }).toList();
+
+    for (final p1 in transformed) {
+      for (final p2 in transformed) {
+        if ((p1 - p2).distance < 150) {
+          canvas.drawLine(p1, p2, paint);
+        }
+      }
+    }
+
+    for (final p in transformed) {
+      canvas.drawCircle(p, 3.5, Paint()..color = Colors.white);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
